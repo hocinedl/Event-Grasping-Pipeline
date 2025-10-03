@@ -1,0 +1,44 @@
+<launch>
+
+    <!-- ===================================================================================== -->
+    <!-- |                            Exploration Parameters                                 | -->
+    <!-- ===================================================================================== -->
+    <!-- Movement pattern for the exploration node. Options: 'square', 'yaw_sweep', 'zigzag', 'rotation', 'spiral' -->
+    <param name="/exploration_server/movement_type"  type="str"    value="square"/>
+    <!-- Number of times to repeat the movement pattern -->
+    <param name="/exploration_server/repeats"        type="int"    value="2"/>
+    <!-- Speed of the robot's linear motion during exploration (m/s) -->
+    <param name="/exploration_server/speed"          type="double" value="0.05"/>
+    <!-- Distance for square and zigzag patterns (meters) -->
+    <param name="/exploration_server/distance"       type="double" value="0.08"/>
+    <!-- Shift distance for the zigzag pattern (meters) -->
+    <param name="/exploration_server/stripe_shift"   type="double" value="0.08"/>
+    <!-- Rotational speed for the rotation pattern (rad/s) -->
+    <param name="/exploration_server/rotation_speed" type="double" value="0.5"/>
+    <!-- Initial step length for the spiral pattern (meters) -->
+    <param name="/exploration_server/spiral_step"    type="double" value="0.1"/>
+    <!-- Total sweep angle in degrees  -->
+    <param name="/exploration_server/yaw_sweep_angle_deg"    type="double" value="90.0"/>
+
+
+    <!-- ===================================================================================== -->
+    <!-- |                                     Nodes                                         | -->
+    <!-- ===================================================================================== -->
+
+    <!-- Clustering Action Server -->
+    <!-- This node processes event data to find object clusters. -->
+    <node name="event_2d_clustering_action_server" pkg="event_clustering" type="clustering_action_server1.py" output="screen"/>
+
+    <!-- Exploration Action Server -->
+    <!-- This node controls the robot's movement to explore the scene. -->
+    <node name="exploration_server" pkg="grasping_pipeline" type="exploration_node1.py" output="screen"/>
+
+    <!-- Grasping Service Node -->
+    <!-- This node provides a service to perform the physical grasp action. -->
+    <node name="grasping_node" pkg="grasping_pipeline" type="grasping_node_orient.py" output="screen"/>
+
+    <!-- Mission Manager -->
+    <!-- This node coordinates the entire pipeline: exploration -> clustering -> grasping. node name="mission_manager" pkg="grasping_pipeline" type="mission_manager1.py" output="screen" -->
+    
+
+</launch>

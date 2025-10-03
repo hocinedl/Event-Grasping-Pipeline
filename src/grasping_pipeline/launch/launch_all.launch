@@ -1,0 +1,29 @@
+<launch>
+    <!-- 1) Camera: DVS renderer -->
+    <include file="$(find dvs_renderer)/launch/davis_mono.launch" />
+
+    <!-- 2) Kinova Driver -->
+    <include file="$(find kortex_driver)/launch/kortex_driver.launch">
+        <arg name="ip_address" value="192.168.1.10" />
+        <arg name="dof"        value="6" />
+        <arg name="gripper"    value="robotiq_2f_85" />
+    </include>
+
+    <!-- 3) Relay joint_states for MoveIt -->
+    <node pkg="topic_tools" type="relay" name="joint_states_relay" output="screen"
+          args="/my_gen3/joint_states /joint_states" />
+
+    <!-- 4) Set robot_description from kortex driver namespace -->
+    <node pkg="rosparam" type="set" name="set_robot_description">
+        <param name="remote_name" value="/my_gen3/robot_description" />
+        <param name="param_name"  value="/robot_description" />
+    </node>
+
+    <!-- 5) MoveIt: planning and controllers -->
+    <include file="$(find gen3_robotiq_2f_85_move_it_config)/launch/move_group.launch" />
+
+    <!-- 6) Davis Camera Info Publisher -->
+    <node pkg="my_moveit_scripts" type="davis_camera_info_publisher.py" name="davis_camera_info_publisher" output="screen"/>
+
+</launch>
+

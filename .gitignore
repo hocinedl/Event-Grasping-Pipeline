@@ -1,0 +1,6 @@
+# Common Build/Temp Files
+*~
+*.bak
+*.orig
+*.swp
+.vscode/

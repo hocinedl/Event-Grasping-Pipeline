@@ -1,0 +1,5 @@
+geometry_msgs/Point target
+float64        angle     # yaw (in radians) of the object in base_link
+---
+bool success
+string message

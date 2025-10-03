@@ -1,0 +1,33 @@
+<launch>
+    <!-- Servoing parameters -->
+    <arg name="kp" default="0.8" />
+    <arg name="rate" default="100" />
+    <arg name="robot_base_frame" default="base_link" />
+    <arg name="robot_eef_frame" default="tool_frame" />
+
+    <!-- 1. Clustering Node -->
+    <node name="clustering_grasping_server" pkg="event_clustering" type="clustering_grasping.py" output="screen">
+        <param name="time_window" value="0.5"/>
+        <param name="size_tol" value="2.0" /> 
+    </node>
+
+    <!-- 2. Feedback Adapter Node -->
+
+    <!-- 3. Centroid Smoother Node (BYPASSED FOR DEBUGGING) -->
+    <!--
+    <node name="centroid_smoother_node" pkg="grasping_pipeline" type="centroid_smoother_node.py" output="screen">
+        <remap from="~raw_centroid" to="/servoing/raw_centroid"/>
+        <remap from="~smooth_centroid" to="/servoing/smooth_centroid"/>
+    </node>
+    -->
+
+    <!-- 4. Position-Based Servoing Node -->
+    <node name="position_based_servoing_node" pkg="grasping_pipeline" type="position_based_servoing_node.py" output="screen">
+        <!-- MODIFICATION: Subscribes directly to the raw centroid from the adapter -->
+        <remap from="~centroid" to="/servoing/raw_centroid"/>
+        <param name="kp" value="$(arg kp)" />
+        <param name="rate" value="$(arg rate)" />
+        <param name="robot_base_frame" value="$(arg robot_base_frame)" />
+        <param name="robot_eef_frame" value="$(arg robot_eef_frame)" />
+    </node>
+</launch>

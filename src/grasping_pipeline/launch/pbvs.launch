@@ -1,0 +1,33 @@
+<launch>
+    <!-- ===================================================================================== -->
+    <!-- |                        Object Detection & Filtering                             | -->
+    <!-- ===================================================================================== -->
+
+    <!-- 1. Clustering Node: Finds the object and publishes raw feedback -->
+    <!-- NOTE: We must start this with an action goal to make it publish feedback -->
+    <node name="event_2d_clustering_action_server" pkg="event_clustering" type="clustering_action_server1.py" output="screen">
+        <param name="time_window" value="0.5"/>
+    </node>
+
+    <!-- Helper script to send a goal to the clustering server so it starts working -->
+
+
+    <!-- 2. Centroid Smoother Node: Subscribes to raw feedback, publishes smooth centroid -->
+    <node name="centroid_smoother_node" pkg="grasping_pipeline" type="centroid_smoother_node.py" output="screen">
+        <param name="buffer_size" value="15" /> <!-- Average over the last 15 samples -->
+        <param name="publish_rate" value="50.0" />
+    </node>
+
+    <!-- ===================================================================================== -->
+    <!-- |                        Position-Based Servoing Controller                         | -->
+    <!-- ===================================================================================== -->
+
+    <!-- 3. PBVS Node: Subscribes to smooth centroid and controls the robot -->
+    <node name="position_based_servoing_node" pkg="grasping_pipeline" type="position_based_servoing_node.py" output="screen">
+        <param name="kp" value="0.8" /> <!-- Tune this gain! -->
+        <param name="robot_base_frame" value="base_link" />
+        <param name="robot_eef_frame" value="tool_frame" />
+        <param name="rate" value="100" />
+    </node>
+
+</launch>

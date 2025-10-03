@@ -1,0 +1,13 @@
+# no goal fields
+---
+# result
+geometry_msgs/PointStamped centroid
+float32 angle
+---
+# feedback
+geometry_msgs/PointStamped centroid
+float32 angle   # object orientation in radians
+int32 min_x
+int32 max_x
+int32 min_y
+int32 max_y

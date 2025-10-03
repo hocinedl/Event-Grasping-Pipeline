@@ -1,0 +1,38 @@
+<launch>
+    <!-- ===================================================================================== -->
+    <!-- |                        Object Detection (Assumed)                                 | -->
+    <!-- ===================================================================================== -->
+
+    <!--
+    IMPORTANT: You need a node that publishes the 2D pixel centroid (u,v)
+    on the /object_centroid_2d topic as a geometry_msgs/PointStamped.
+    The existing clustering/filtering nodes would need to be modified for this.
+    For now, we launch the clustering server as a placeholder.
+    -->
+    <node name="event_2d_clustering_action_server" pkg="event_clustering" type="clustering_action_server2.py" output="screen" />
+    <node name="clustering_goal_sender" pkg="rostopic" type="rostopic"
+          args="pub /cluster_events/goal action_client_interface/ClusteringActionGoal '{}' -1" />
+
+
+    <!-- ===================================================================================== -->
+    <!-- |                        Image-Based Servoing Controller                            | -->
+    <!-- ===================================================================================== -->
+
+    <node name="image_based_servoing_node" pkg="grasping_pipeline" type="image_based_servoing_node.py" output="screen">
+        <!-- Controller Gain -->
+        <param name="lambda" value="0.5" />
+        <!-- Estimated distance from camera to object in meters -->
+        <param name="depth_z" value="0.4" />
+
+        <!-- Camera Intrinsic Parameters (MUST match your camera) -->
+        <param name="fx" value="296.0" />
+        <param name="fy" value="297.0" />
+        <param name="cx" value="171.0" />
+        <param name="cy" value="133.0" />
+
+        <!-- TF Frames -->
+        <param name="robot_base_frame" value="base_link" />
+        <param name="camera_frame" value="dvx_camera_link" /> <!-- Check this frame name! -->
+    </node>
+
+</launch>

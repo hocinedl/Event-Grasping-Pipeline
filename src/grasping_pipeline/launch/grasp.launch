@@ -1,0 +1,25 @@
+<launch>
+    <!-- Clustering Action Server  -->
+    
+
+    <!-- Exploration Node -->
+    <node pkg="grasping_pipeline" type="exploration_node.py" name="exploration_node" output="screen">
+        <!-- Optional: private parameters -->
+        <param name="buffer_size" value="50" />
+    </node>
+
+    <!-- Filtering Node -->
+    <node pkg="grasping_pipeline" type="filtering_node.py" name="filtering_node" output="screen">
+        <!-- DBSCAN parameters -->
+        <param name="buffer_size" value="50" />
+        <param name="min_samples_total" value="20" />
+        <param name="dbscan_eps" value="0.05" />
+        <param name="dbscan_min_samples" value="5" />
+    </node>
+
+    <!-- Grasping Node -->
+    <node pkg="grasping_pipeline" type="grasping_node.py" name="grasping_node" output="screen">
+        <!-- Gripper and MoveIt parameters could be set here if needed -->
+    </node>
+</launch>
+
