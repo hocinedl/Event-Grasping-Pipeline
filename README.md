@@ -30,3 +30,38 @@ The package implements a complete **ROS** pipeline for robotic pick-and-place us
 
 **License**  
 Specify your license here (e.g., MIT/BSD-3-Clause).
+
+
+# Real-time Grasping using Event-driven Camera (ROS)
+
+This repository contains the ROS package used in the thesis **“Real-time Grasping using Event-driven Camera.”**  
+The pipeline implements event-based 2D clustering, 3D back-projection, and temporal filtering to provide a stable 3D centroid/yaw for grasping via **two modes**:
+- **Search-then-Grasp** (static objects).
+- **Track-then-Predictive-Grasp** (moving objects with PBVS + velocity estimation).
+
+---
+
+## 1. Dependencies
+
+- OS / ROS: Ubuntu + ROS (Kinetic/Melodic/Noetic – match your local setup).
+- **Event Camera Driver**: [rpg\_dvs\_ros](https://github.com/uzh-rpg/rpg_dvs_ros) for DAVIS346 (APS/DVS).
+- **Robot Driver**: [ros\_kortex](https://github.com/Kinovarobotics/ros_kortex) for Kinova Gen3.
+- **TF**: A valid TF chain `base_link -> dvx_camera_link` (eye-in-hand).
+- **Calibration**: Camera intrinsics (K) and TF are required; parameters are in `config/`.
+
+Optional (recommended):
+- `catkin_tools`, `python-sklearn`, `numpy`, `opencv-python`, `tf` (Python), `actionlib`.
+
+---
+
+## 2. Build
+
+```bash
+# create workspace if not exists
+mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/src
+# clone this repo
+git clone https://github.com/hocinedl/Event-Grasping-Pipeline.git
+cd ..
+catkin_make        # or catkin build
+source devel/setup.bash
+
