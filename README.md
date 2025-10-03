@@ -28,42 +28,50 @@ cd ..
 catkin_make        # or catkin build
 source devel/setup.bash
 ```
-## 3. Running the Drivers
+## 3. Start Required Drivers and MoveIt
 In separate terminals:
 ```bash
+# 1. Event camera (DAVIS) driver
+roslaunch rpg_dvs_ros davis_mono.launch
 
-- roslaunch dvs_renderer davis_mono.launch    # Event camera (DAVIS) driver
-- roslaunch kortex_driver kortex_driver.launch ip_address:=192.168.1.10 dof:=6 gripper:=robotiq_2f_85    # ROBOT DRIVER.
-- rosparam set /robot_description "$(rosparam get /my_gen3/robot_description)"    
-- roslaunch gen3_robotiq_2f_85_move_it_config move_group.launch   #MOVE IT 
+# 2. Kinova Gen3 Robot Driver
+# NOTE: Replace the ip_address with your robot's actual IP.
+roslaunch kortex_driver kortex_driver.launch ip_address:=192.168.1.10 dof:=6 gripper:=robotiq_2f_85
+
+# 3. Set robot description parameter (Necessary for MoveIt! integration)
+rosparam set /robot_description "$(rosparam get /my_gen3/robot_description)"
+
+# 4. Launch MoveIt! environment and move_group node
+roslaunch gen3_robotiq_2f_85_move_it_config move_group.launch
 
 ```
 
 ## 4. Static Grasp (“Search-then-Grasp”)
+
 This mode performs a short exploratory motion to elicit events, then computes a stable 3D centroid pose and orientation and executes the grasp.
 ```bash
-#The launch file containing all necessary nodes (clustering, exploration, grasping)
+#Launch the full pipeline infrastructure (clustering, exploration logic, etc.):
 roslaunch grasping_pipeline pipeline.launch
 
-# start the mission by running the mission manager node:
+# Start the mission by running the mission manager node: 
 rosrun grasping_pipeline mission_manager1.py
 
-#Parameters such as object dimensions (object_dims = [L, W, H]), cluster eps/minPts, and size tolerance can be configured via the launch file.
+Parameters such as object dimensions (object_dims = [L, W, H]), cluster eps/minPts, and size tolerance, and exploration trajectory can be configured via the launch file.
 ```
 
 
 ## 5. Dynamic Grasp (“Track-then-Predictive-Grasp”)
+
 This mode continuously tracks a moving object using PBVS and a short history of centroids to estimate planar velocity (Kalman Filter). Once the velocity estimate stabilizes, the controller predicts an intercept point and executes the grasp.
 
 ```bash
 # To initialize the clustering node:
 - rosrun event_clustering clustering_servoing.py
 
-# to initialize the tracking and graping node:
-
+# To initialize the tracking and grasping node:
 - rosrun grasping_pipeline track_kf.py
 
- # To give the start to the pipeline:
+ # To give the start signal to the predictive grasping pipeline:
 - rosservice call /predictive_grasp_manager/start_grasp "{}"
 
 ```
