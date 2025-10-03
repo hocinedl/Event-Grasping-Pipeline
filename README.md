@@ -1,43 +1,9 @@
-### Real-time Grasping using Event-driven Camera: ROS Package
-
-This repository contains the full source code for the Master's Thesis, "Real-time Grasping using Event-driven Camera."
-
-The code provides a complete ROS pipeline for robotic pick-and-place tasks using an event-based vision sensor (DAVIS346 camera).
-
-
-### Real-time Grasping using Event-driven Camera: ROS Package
-
-This repository contains the source code for the Master's thesis **“Real-time Grasping using Event-driven Camera.”**
-
-The package implements a complete **ROS** pipeline for robotic pick-and-place using an **eye-in-hand DAVIS346** event camera. The perception module runs directly on the 2D event stream, performs **DBSCAN** clustering and a rotated-rectangle fit, validates clusters using a size-consistency test, and **back-projects** the centroid/orientation to 3D using camera intrinsics and the TF chain. A temporal filter (DBSCAN in 3D pose space) stabilizes the estimate. The filtered pose is used by:
-- **Search-then-grasp** (static objects): short exploratory motion → grasp.
-- **Track-then-predictive-grasp** (moving objects): PBVS tracking + velocity estimation to predict an intercept.
-
-**Main components**
-- `src/event_2d_clustering_action_server.py` – action server that publishes the filtered 3D centroid/yaw.
-- `src/utils.py` – back-projection, DBSCAN filters, drawing utilities.
-- `launch/*` – example bringup and demo launch files.
-- `config/*` – camera intrinsics and pipeline parameters.
-
-**Basic usage**
-1. Start camera and robot bringup (eye-in-hand TF must be available).
-2. Run the clustering action server.
-3. Launch either the static or dynamic grasp demo.
-
-> Notes:  
-> • Object height and top-face dimensions are assumed known for size validation and depth computation.  
-> • Tested in Docker (ROS Kinetic) and on a Kinova Gen3 with Robotiq 2F-85.
-
-**License**  
-Specify your license here (e.g., MIT/BSD-3-Clause).
-
-
 # Real-time Grasping using Event-driven Camera (ROS)
 
-This repository contains the ROS package used in the thesis **“Real-time Grasping using Event-driven Camera.”**  
-The pipeline implements event-based 2D clustering, 3D back-projection, and temporal filtering to provide a stable 3D centroid/yaw for grasping via **two modes**:
+This repository contains the ROS package of the thesis **“Real-time Grasping using Event-driven Camera.”**  
+The pipeline implements event-based 2D clustering, 3D back-projection, and temporal filtering to provide a stable 3D centroid pose and orientation for grasping via **two modes**:
 - **Search-then-Grasp** (static objects).
-- **Track-then-Predictive-Grasp** (moving objects with PBVS + velocity estimation).
+- **Track-then-Predictive-Grasp** (moving objects with PBVS + velocity estimation for moving objects).
 
 ---
 
@@ -45,13 +11,10 @@ The pipeline implements event-based 2D clustering, 3D back-projection, and tempo
 
 - OS / ROS: Ubuntu + ROS (Kinetic/Melodic/Noetic – match your local setup).
 - **Event Camera Driver**: [rpg\_dvs\_ros](https://github.com/uzh-rpg/rpg_dvs_ros) for DAVIS346 (APS/DVS).
-- **Robot Driver**: [ros\_kortex](https://github.com/Kinovarobotics/ros_kortex) for Kinova Gen3.
-- **TF**: A valid TF chain `base_link -> dvx_camera_link` (eye-in-hand).
-- **Calibration**: Camera intrinsics (K) and TF are required; parameters are in `config/`.
-
-Optional (recommended):
-- `catkin_tools`, `python-sklearn`, `numpy`, `opencv-python`, `tf` (Python), `actionlib`.
-
+- **Robot Driver**: [ros\_kortex](https://github.com/Kinovarobotics/ros_kortex) for Kinova Gen3 robotic arm.
+- **TF**: A valid TF chain `base_link -> dvx_camera_link`.
+- **Calibration**: Camera intrinsics (K) and TF are required;
+  
 ---
 
 ## 2. Build
@@ -64,4 +27,43 @@ git clone https://github.com/hocinedl/Event-Grasping-Pipeline.git
 cd ..
 catkin_make        # or catkin build
 source devel/setup.bash
+```
+## 3. Running the Drivers
+In separate terminals:
+```bash
 
+- roslaunch dvs_renderer davis_mono.launch    # Event camera (DAVIS) driver
+- roslaunch kortex_driver kortex_driver.launch ip_address:=192.168.1.10 dof:=6 gripper:=robotiq_2f_85    # ROBOT DRIVER.
+- rosparam set /robot_description "$(rosparam get /my_gen3/robot_description)"    
+- roslaunch gen3_robotiq_2f_85_move_it_config move_group.launch   #MOVE IT 
+
+```
+
+## 4. Static Grasp (“Search-then-Grasp”)
+This mode performs a short exploratory motion to elicit events, then computes a stable 3D centroid pose and orientation and executes the grasp.
+```bash
+#The launch file containing all necessary nodes (clustering, exploration, grasping)
+roslaunch grasping_pipeline pipeline.launch
+
+# start the mission by running the mission manager node:
+rosrun grasping_pipeline mission_manager1.py
+
+#Parameters such as object dimensions (object_dims = [L, W, H]), cluster eps/minPts, and size tolerance can be configured via the launch file.
+```
+
+
+## 5. Dynamic Grasp (“Track-then-Predictive-Grasp”)
+This mode continuously tracks a moving object using PBVS and a short history of centroids to estimate planar velocity (Kalman Filter). Once the velocity estimate stabilizes, the controller predicts an intercept point and executes the grasp.
+
+```bash
+# To initialize the clustering node:
+- rosrun event_clustering clustering_servoing.py
+
+# to initialize the tracking and graping node:
+
+- rosrun grasping_pipeline track_kf.py
+
+ # To give the start to the pipeline:
+- rosservice call /predictive_grasp_manager/start_grasp "{}"
+
+```
